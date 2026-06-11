@@ -1,24 +1,84 @@
 import { useParams } from '@tanstack/react-router';
+import { useDevice } from '@/hooks/use-devices';
+import { formatAbsolute, formatRelative } from '@/utils/time';
 import { PageHeader } from '@/shared/components/layout/page-header';
-import { ComingSoon } from '@/shared/components/layout/route-states';
-import { Badge } from '@/shared/components/ui/badge';
+import { ComingSoon, PageSkeleton } from '@/shared/components/layout/route-states';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Separator } from '@/shared/components/ui/separator';
+import { DeviceStatusPill } from './components/device-status-pill';
 
-/** Single-device drill-down; hydrates with telemetry + charts in Phases 3–6. */
+/** Single-device drill-down backed by GET /api/v1/devices/:id. */
 export function DeviceDetailPage() {
   const params = useParams({ strict: false });
-  const deviceId = params.deviceId ?? 'unknown-device';
+  const deviceId = params.deviceId ?? '';
+  const { data: device, isLoading } = useDevice(deviceId);
+
+  if (isLoading) return <PageSkeleton />;
+  if (!device) return null; // error boundary handles failures
+
   return (
     <>
       <PageHeader
-        title={deviceId}
+        title={device.name}
         description="Telemetry, health score, command history and configuration for this device."
-        actions={<Badge variant="outline">provisioning</Badge>}
+        actions={<DeviceStatusPill status={device.status} />}
       />
-      <ComingSoon
-        title="Device detail"
-        description="Live telemetry panels, health gauges, command console and audit trail render here once the device and telemetry APIs are wired."
-        phase="Phases 3–6"
-      />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Identity</CardTitle>
+            <CardDescription>Registration and hardware metadata.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <DetailRow label="Device ID" value={<code className="font-mono text-xs">{device.id}</code>} />
+            <Separator />
+            <DetailRow label="Model" value={device.model || '—'} />
+            <Separator />
+            <DetailRow label="Firmware" value={<code className="font-mono text-xs">{device.firmware || '—'}</code>} />
+            <Separator />
+            <DetailRow label="Registered" value={formatAbsolute(device.created_at)} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Connectivity</CardTitle>
+            <CardDescription>Heartbeat and link state.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <DetailRow label="Status" value={<DeviceStatusPill status={device.status} />} />
+            <Separator />
+            <DetailRow
+              label="Last seen"
+              value={
+                <span title={formatAbsolute(device.last_seen_at)}>
+                  {formatRelative(device.last_seen_at)}
+                </span>
+              }
+            />
+            <Separator />
+            <DetailRow label="Updated" value={formatAbsolute(device.updated_at)} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <ComingSoon
+          title="Live telemetry"
+          description="Streaming charts, health gauges and the remote command console attach here when the MQTT → WebSocket pipeline lands."
+          phase="Phases 5–6"
+        />
+      </div>
     </>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-muted-foreground">{label}</span>
+      <span>{value}</span>
+    </div>
   );
 }

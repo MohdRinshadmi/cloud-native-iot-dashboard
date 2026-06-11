@@ -1,4 +1,6 @@
 import { env } from '@/shared/lib/env';
+import { useAuthStore } from '@/stores/auth.store';
+import type { SessionResponse } from '@/types/api';
 
 /**
  * ApiError is the single error type surfaced by the client. Callers (and the
@@ -19,25 +21,37 @@ export class ApiError extends Error {
 
 interface RequestOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
-  /** Bearer token; injected by the auth layer (Phase 4). */
-  token?: string;
+  /** Skip Authorization header + 401 retry (used by auth endpoints). */
+  skipAuth?: boolean;
 }
 
 /**
- * Thin, typed wrapper around fetch. Centralising transport here means retries,
- * auth headers, tracing and error shaping are defined once — feature code only
- * ever calls `api.get<T>(...)`.
+ * Thin, typed wrapper around fetch. Centralising transport here means auth
+ * headers, silent token refresh, tracing and error shaping are defined once —
+ * feature code only ever calls `api.get<T>(...)`.
+ *
+ * 401 handling: one transparent refresh attempt (deduped across concurrent
+ * requests), then a single retry. A failed refresh clears the session and the
+ * route guard bounces the user to /login.
  */
 class ApiClient {
   constructor(private readonly baseUrl: string) {}
 
-  private async request<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
-    const { body, token, headers, ...rest } = opts;
+  private async request<T>(
+    method: string,
+    path: string,
+    opts: RequestOptions = {},
+    isRetry = false,
+  ): Promise<T> {
+    const { body, skipAuth, headers, ...rest } = opts;
 
     const finalHeaders = new Headers(headers);
     finalHeaders.set('Accept', 'application/json');
     if (body !== undefined) finalHeaders.set('Content-Type', 'application/json');
-    if (token) finalHeaders.set('Authorization', `Bearer ${token}`);
+    if (!skipAuth) {
+      const token = useAuthStore.getState().accessToken;
+      if (token) finalHeaders.set('Authorization', `Bearer ${token}`);
+    }
 
     const init: RequestInit = { method, headers: finalHeaders, ...rest };
     if (body !== undefined) init.body = JSON.stringify(body);
@@ -47,6 +61,12 @@ class ApiClient {
       res = await fetch(`${this.baseUrl}${path}`, init);
     } catch {
       throw new ApiError(0, 'NETWORK', 'Network request failed', undefined);
+    }
+
+    // Transparent session renewal on expiry.
+    if (res.status === 401 && !skipAuth && !isRetry) {
+      const renewed = await refreshSession();
+      if (renewed) return this.request<T>(method, path, opts, true);
     }
 
     const requestId = res.headers.get('X-Request-ID') ?? undefined;
@@ -94,6 +114,48 @@ function extractError(payload: unknown): { code: string; message: string } {
     }
   }
   return { code: 'UNKNOWN', message: 'Request failed' };
+}
+
+// ---- silent refresh ----------------------------------------------------------
+
+let refreshInFlight: Promise<boolean> | null = null;
+
+/**
+ * Exchange the httpOnly refresh cookie for a new access token. Deduplicated:
+ * concurrent 401s share one refresh call. Uses raw fetch (not ApiClient) to
+ * avoid recursion.
+ */
+export function refreshSession(): Promise<boolean> {
+  refreshInFlight ??= (async () => {
+    try {
+      const res = await fetch(`${env.VITE_API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+      });
+      if (!res.ok) {
+        useAuthStore.getState().clear();
+        return false;
+      }
+      const session = (await res.json()) as SessionResponse;
+      useAuthStore.getState().setSession(session.user, session.access_token);
+      return true;
+    } catch {
+      useAuthStore.getState().clear();
+      return false;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+  return refreshInFlight;
+}
+
+/**
+ * Resolve the initial auth state at app boot: try a silent refresh once.
+ * Returns when the store's status is no longer 'unknown'.
+ */
+export async function bootstrapAuth(): Promise<void> {
+  await refreshSession();
 }
 
 export const api = new ApiClient(env.VITE_API_BASE_URL);

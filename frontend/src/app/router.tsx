@@ -1,6 +1,7 @@
 import { createRouter } from '@tanstack/react-router';
 import { rootRoute } from '@/routes/__root';
 import { appLayoutRoute } from '@/routes/_app';
+import { loginRoute } from '@/routes/login';
 import { overviewRoute } from '@/routes/index';
 import { devicesRoute, deviceDetailRoute } from '@/routes/devices';
 import {
@@ -15,6 +16,7 @@ import { NotFound, PageSkeleton, RouteError } from '@/shared/components/layout/r
 // Route tree: a single pathless layout route owns the shell; every page is a
 // code-split child. Adding a page = one route def + one nav-config entry.
 const routeTree = rootRoute.addChildren([
+  loginRoute,
   appLayoutRoute.addChildren([
     overviewRoute,
     devicesRoute,

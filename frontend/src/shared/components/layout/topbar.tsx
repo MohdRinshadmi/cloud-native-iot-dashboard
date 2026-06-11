@@ -1,9 +1,11 @@
-import { LogOut, Search, Settings, UserRound } from 'lucide-react';
+import { LogOut, Search, Settings } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { Breadcrumbs } from './breadcrumbs';
 import { ConnectionIndicator } from './connection-indicator';
 import { useUIStore } from '@/stores/ui.store';
 import { useAuthStore } from '@/stores/auth.store';
+import { logout } from '@/services/api/auth';
+import { Badge } from '@/shared/components/ui/badge';
 import { Kbd } from '@/shared/components/ui/kbd';
 import { Separator } from '@/shared/components/ui/separator';
 import {
@@ -20,6 +22,11 @@ export function Topbar() {
   const setPaletteOpen = useUIStore((s) => s.setCommandPaletteOpen);
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await logout();
+    void navigate({ to: '/login' });
+  };
 
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/80 px-6 backdrop-blur">
@@ -44,17 +51,20 @@ export function Topbar() {
             <button
               type="button"
               aria-label="User menu"
-              className="grid h-8 w-8 place-items-center rounded-full border border-border bg-secondary text-secondary-foreground transition-colors hover:bg-accent"
+              className="grid h-8 w-8 place-items-center rounded-full border border-border bg-primary/15 text-sm font-semibold text-primary transition-colors hover:bg-primary/25"
             >
-              <UserRound className="h-4 w-4" />
+              {user?.name.charAt(0).toUpperCase() ?? '?'}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               {user ? (
-                <div>
+                <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground">{user.name}</p>
                   <p className="text-xs font-normal">{user.email}</p>
+                  <Badge variant="outline" className="capitalize">
+                    {user.role}
+                  </Badge>
                 </div>
               ) : (
                 'Guest session'
@@ -64,8 +74,8 @@ export function Topbar() {
             <DropdownMenuItem onSelect={() => void navigate({ to: '/settings' })}>
               <Settings /> Settings
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
-              <LogOut /> Sign out (Phase 4)
+            <DropdownMenuItem onSelect={() => void handleSignOut()}>
+              <LogOut /> Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
