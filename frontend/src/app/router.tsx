@@ -1,15 +1,39 @@
 import { createRouter } from '@tanstack/react-router';
 import { rootRoute } from '@/routes/__root';
-import { indexRoute } from '@/routes/index';
+import { appLayoutRoute } from '@/routes/_app';
+import { overviewRoute } from '@/routes/index';
+import { devicesRoute, deviceDetailRoute } from '@/routes/devices';
+import {
+  alertsRoute,
+  analyticsRoute,
+  insightsRoute,
+  mapRoute,
+  settingsRoute,
+} from '@/routes/pages';
+import { NotFound, PageSkeleton, RouteError } from '@/shared/components/layout/route-states';
 
-// Assemble the route tree. New feature routes register here (or move to
-// file-based routing once the surface grows in Phase 6).
-const routeTree = rootRoute.addChildren([indexRoute]);
+// Route tree: a single pathless layout route owns the shell; every page is a
+// code-split child. Adding a page = one route def + one nav-config entry.
+const routeTree = rootRoute.addChildren([
+  appLayoutRoute.addChildren([
+    overviewRoute,
+    devicesRoute,
+    deviceDetailRoute,
+    analyticsRoute,
+    mapRoute,
+    alertsRoute,
+    insightsRoute,
+    settingsRoute,
+  ]),
+]);
 
 export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
   scrollRestoration: true,
+  defaultPendingComponent: PageSkeleton,
+  defaultErrorComponent: RouteError,
+  defaultNotFoundComponent: NotFound,
 });
 
 // Type-safe router: gives autocomplete + compile-time checks on every <Link>.

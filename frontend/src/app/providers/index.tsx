@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { QueryProvider } from './query-provider';
+import { TooltipProvider } from '@/shared/components/ui/tooltip';
 
 /**
  * Composition point for all cross-cutting providers. Order matters: outer
@@ -7,5 +8,9 @@ import { QueryProvider } from './query-provider';
  * class on <html>); a ThemeProvider slots in here when light mode lands.
  */
 export function AppProviders({ children }: { children: ReactNode }) {
-  return <QueryProvider>{children}</QueryProvider>;
+  return (
+    <QueryProvider>
+      <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+    </QueryProvider>
+  );
 }
