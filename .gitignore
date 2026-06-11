@@ -1,0 +1,39 @@
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# ---- Node / frontend ----
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+coverage/
+.eslintcache
+*.tsbuildinfo
+
+# ---- Go / backend ----
+/backend/bin/
+/backend/tmp/
+*.test
+*.out
+vendor/
+
+# ---- Env & secrets ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---- Build / infra ----
+*.log
+.turbo/
+
+# ---- Archived prior build (kept locally, never committed) ----
+_legacy/

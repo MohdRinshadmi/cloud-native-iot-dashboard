@@ -1,0 +1,37 @@
+# Reference configuration — DOCUMENTATION ONLY.
+# The service is configured by environment variables (see .env.example and
+# internal/infrastructure/config). This file documents the shape and defaults
+# for humans; it is not parsed at runtime.
+
+app:
+  env: development          # development | staging | production
+  log_level: info           # debug | info | warn | error
+
+http:
+  host: 0.0.0.0
+  port: 8080
+  read_timeout: 15s
+  write_timeout: 15s
+  shutdown_timeout: 10s
+  cors_allowed_origins:
+    - http://localhost:5173
+
+postgres:
+  host: localhost
+  port: 5432
+  database: iot_dashboard
+  sslmode: disable
+
+redis:
+  host: localhost
+  port: 6379
+  db: 0
+
+mqtt:
+  host: localhost
+  port: 1883
+  client_id: iot-backend
+
+jwt:
+  access_ttl: 15m
+  refresh_ttl: 168h

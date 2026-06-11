@@ -1,0 +1,86 @@
+// Package device is the Device bounded context. It contains pure domain code:
+// entities, value objects, invariants and ports. It imports NOTHING from
+// infrastructure or transport — the dependency rule points strictly inward.
+package device
+
+import (
+	"time"
+
+	"github.com/ioss/iot-dashboard/backend/internal/shared/apperror"
+)
+
+// Status is the lifecycle/connectivity state of a device.
+type Status string
+
+const (
+	StatusProvisioning   Status = "provisioning" // created, not yet seen
+	StatusOnline         Status = "online"       // heartbeat within threshold
+	StatusOffline        Status = "offline"      // heartbeat lapsed
+	StatusDegraded       Status = "degraded"     // online but unhealthy telemetry
+	StatusDecommissioned Status = "decommissioned"
+)
+
+// Valid reports whether s is a known status.
+func (s Status) Valid() bool {
+	switch s {
+	case StatusProvisioning, StatusOnline, StatusOffline, StatusDegraded, StatusDecommissioned:
+		return true
+	default:
+		return false
+	}
+}
+
+// Device is the aggregate root of this context. It belongs to exactly one
+// tenant (multi-tenancy is enforced at the domain boundary, not bolted on).
+type Device struct {
+	ID         string
+	TenantID   string
+	Name       string
+	Model      string
+	Firmware   string
+	Status     Status
+	LastSeenAt *time.Time
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+// NewDevice constructs a valid Device in the provisioning state, enforcing
+// invariants at creation time. `now` is injected to keep the domain
+// deterministic and testable (no hidden time.Now()).
+func NewDevice(id, tenantID, name, model string, now time.Time) (*Device, error) {
+	if id == "" {
+		return nil, apperror.InvalidInput("device id is required")
+	}
+	if tenantID == "" {
+		return nil, apperror.InvalidInput("tenant id is required")
+	}
+	if name == "" {
+		return nil, apperror.InvalidInput("device name is required")
+	}
+	return &Device{
+		ID:        id,
+		TenantID:  tenantID,
+		Name:      name,
+		Model:     model,
+		Status:    StatusProvisioning,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}, nil
+}
+
+// MarkSeen records a heartbeat, transitioning the device online.
+func (d *Device) MarkSeen(at time.Time) {
+	d.LastSeenAt = &at
+	if d.Status == StatusProvisioning || d.Status == StatusOffline {
+		d.Status = StatusOnline
+	}
+	d.UpdatedAt = at
+}
+
+// IsOnline reports whether the last heartbeat is within the given window.
+func (d *Device) IsOnline(now time.Time, window time.Duration) bool {
+	if d.LastSeenAt == nil {
+		return false
+	}
+	return now.Sub(*d.LastSeenAt) <= window
+}
