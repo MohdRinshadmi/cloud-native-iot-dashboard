@@ -146,10 +146,10 @@ make down        # stop everything, remove volumes
 ## Roadmap
 
 - [x] **Phase 1 — Foundation**: monorepo, Gin API skeleton (clean architecture), React 19 + Vite app, Docker Compose stack, health probes, CI-ready quality gates
-- [ ] Phase 2 — Frontend foundation: app shell, layout system, design system, navigation
-- [ ] Phase 3 — Backend foundation: GORM + Postgres, repositories, migrations, device CRUD
-- [ ] Phase 4 — Authentication: JWT + refresh rotation, RBAC, route guards
-- [ ] Phase 5 — Real-time: MQTT consumer, event pipeline, WebSocket broadcaster
+- [x] **Phase 2 — Frontend foundation**: app shell, design system, code-split routing, ⌘K palette
+- [x] **Phase 3 — Backend foundation**: GORM + Postgres, repositories, embedded migrations, device CRUD, Redis
+- [x] **Phase 4 — Authentication**: JWT + refresh rotation w/ reuse detection, RBAC, login UI, route guards
+- [x] **Phase 5 — Real-time**: MQTT consumer, worker-pool ingest pipeline, WS broadcaster, offline sweep, device simulator (`make sim`)
 - [ ] Phase 6 — Dashboard: KPI widgets, streaming charts (Recharts/D3)
 - [ ] Phase 7 — Device management: groups, firmware, OTA simulation, commands
 - [ ] Phase 8 — Maps: Leaflet + OpenStreetMap, clustering, geofencing

@@ -17,15 +17,18 @@ import (
 	appauth "github.com/ioss/iot-dashboard/backend/internal/application/auth"
 	appdevices "github.com/ioss/iot-dashboard/backend/internal/application/devices"
 	"github.com/ioss/iot-dashboard/backend/internal/application/health"
+	"github.com/ioss/iot-dashboard/backend/internal/application/ingest"
 	"github.com/ioss/iot-dashboard/backend/internal/infrastructure/authtoken"
 	"github.com/ioss/iot-dashboard/backend/internal/infrastructure/cache"
 	"github.com/ioss/iot-dashboard/backend/internal/infrastructure/config"
 	"github.com/ioss/iot-dashboard/backend/internal/infrastructure/hash"
 	"github.com/ioss/iot-dashboard/backend/internal/infrastructure/logger"
+	"github.com/ioss/iot-dashboard/backend/internal/infrastructure/mqtt"
 	"github.com/ioss/iot-dashboard/backend/internal/infrastructure/persistence"
 	"github.com/ioss/iot-dashboard/backend/internal/infrastructure/server"
 	"github.com/ioss/iot-dashboard/backend/internal/interfaces/http/handler"
 	"github.com/ioss/iot-dashboard/backend/internal/interfaces/http/router"
+	"github.com/ioss/iot-dashboard/backend/internal/interfaces/ws"
 )
 
 // version is overridden at build time via -ldflags "-X main.version=...".
@@ -98,19 +101,48 @@ func run() error {
 		}
 	}
 
-	// 7. Transport wiring.
+	// 7. Real-time pipeline: WS hub ← ingest workers ← MQTT consumer.
+	// runCtx cancellation tears the whole pipeline down in reverse order.
+	runCtx, cancelRun := context.WithCancel(ctx)
+	defer cancelRun()
+
+	hub := ws.NewHub(log)
+	go hub.Run(runCtx)
+
+	telemetryRepo := persistence.NewTelemetryRepository(db)
+	latestStore := cache.NewLatestStore(redisClient)
+	ingestSvc := ingest.NewService(
+		ingest.Config{
+			Workers:           cfg.Ingest.Workers,
+			QueueSize:         cfg.Ingest.QueueSize,
+			HeartbeatInterval: cfg.Ingest.HeartbeatInterval,
+			OfflineAfter:      cfg.Ingest.OfflineAfter,
+		},
+		telemetryRepo, latestStore, deviceRepo, hub, log, func() time.Time { return time.Now().UTC() },
+	)
+	ingestSvc.Start(runCtx)
+
+	consumer := mqtt.NewConsumer(cfg.MQTT, ingestSvc, log)
+	if err := consumer.Start(); err != nil {
+		return err
+	}
+
+	// 8. Transport wiring.
 	engine := router.New(router.Deps{
-		Config:   cfg,
-		Logger:   log,
-		Health:   handler.NewHealthHandler(healthSvc),
-		Auth:     handler.NewAuthHandler(authSvc, cfg.IsProduction()),
-		Devices:  handler.NewDeviceHandler(deviceSvc),
-		Verifier: jwtManager,
-		Limiter:  limiter,
+		Config:    cfg,
+		Logger:    log,
+		Health:    handler.NewHealthHandler(healthSvc),
+		Auth:      handler.NewAuthHandler(authSvc, cfg.IsProduction()),
+		Devices:   handler.NewDeviceHandler(deviceSvc),
+		Telemetry: handler.NewTelemetryHandler(deviceSvc, telemetryRepo, latestStore),
+		WS:        ws.NewHandler(hub, jwtManager, cfg.HTTP.AllowedOrigins, log),
+		Verifier:  jwtManager,
+		Limiter:   limiter,
 	})
 	srv := server.New(cfg.HTTP, engine, log)
 
-	// 8. Run server; block until SIGINT/SIGTERM; drain gracefully.
+	// 9. Run server; block until SIGINT/SIGTERM; drain gracefully in order:
+	// stop intake (MQTT) → drain workers → drain HTTP/WS.
 	errCh := make(chan error, 1)
 	go func() { errCh <- srv.Start() }()
 
@@ -121,12 +153,20 @@ func run() error {
 	case err := <-errCh:
 		return err
 	case <-signalCtx.Done():
+		consumer.Stop() // 1. no new messages
+		cancelRun()     // 2. workers + hub wind down
+		ingestSvc.Wait()
+
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.HTTP.ShutdownTimeout)
 		defer cancel()
-		if err := srv.Shutdown(shutdownCtx); err != nil {
+		if err := srv.Shutdown(shutdownCtx); err != nil { // 3. drain HTTP
 			return err
 		}
-		log.Info("shutdown complete")
+		processed, dropped := ingestSvc.Stats()
+		log.Info("shutdown complete",
+			slog.Int64("messages_processed", processed),
+			slog.Int64("messages_dropped", dropped),
+		)
 		return nil
 	}
 }

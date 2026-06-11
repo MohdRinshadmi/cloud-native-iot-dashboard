@@ -41,3 +41,28 @@ export interface Paginated<T> {
   data: T[];
   meta: { total: number; limit: number; offset: number };
 }
+
+// ---- realtime (WebSocket) ----------------------------------------------------
+
+export interface TelemetryReading {
+  device_id: string;
+  ts: string;
+  temperature?: number;
+  battery?: number;
+  voltage?: number;
+  cpu?: number;
+  memory?: number;
+  signal?: number;
+  lat?: number;
+  lng?: number;
+}
+
+export interface DeviceStatusEvent {
+  device_id: string;
+  status: DeviceStatus;
+  last_seen_at: string | null;
+}
+
+export type RealtimeEvent =
+  | { type: 'telemetry'; data: TelemetryReading }
+  | { type: 'device_status'; data: DeviceStatusEvent };

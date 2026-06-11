@@ -24,10 +24,10 @@ export default tseslint.config(
     },
   },
   {
-    // Route modules and the UI primitive library intentionally co-locate a
-    // component with its route/variant exports — the react-refresh constraint
-    // doesn't apply to these conventions.
-    files: ['src/routes/**/*.tsx', 'src/shared/components/ui/**/*.tsx'],
+    // Route modules, the UI primitive library and context providers
+    // intentionally co-locate a component with its route/variant/hook exports —
+    // the react-refresh constraint doesn't apply to these conventions.
+    files: ['src/routes/**/*.tsx', 'src/shared/components/ui/**/*.tsx', 'src/providers/**/*.tsx'],
     rules: {
       'react-refresh/only-export-components': 'off',
     },

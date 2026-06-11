@@ -60,7 +60,9 @@ func (f *fakeTenants) GetBySlug(_ context.Context, slug string) (*tenant.Tenant,
 	return nil, apperror.NotFound("tenant not found")
 }
 
-type fakeRefresh struct{ byHash map[string]*domauth.RefreshToken }
+type fakeRefresh struct {
+	byHash map[string]*domauth.RefreshToken
+}
 
 func newFakeRefresh() *fakeRefresh {
 	return &fakeRefresh{byHash: map[string]*domauth.RefreshToken{}}

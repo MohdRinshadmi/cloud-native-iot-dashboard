@@ -14,17 +14,20 @@ import (
 	"github.com/ioss/iot-dashboard/backend/internal/infrastructure/config"
 	"github.com/ioss/iot-dashboard/backend/internal/interfaces/http/handler"
 	"github.com/ioss/iot-dashboard/backend/internal/interfaces/http/middleware"
+	"github.com/ioss/iot-dashboard/backend/internal/interfaces/ws"
 )
 
 // Deps is the explicit dependency set the router needs.
 type Deps struct {
-	Config   *config.Config
-	Logger   *slog.Logger
-	Health   *handler.HealthHandler
-	Auth     *handler.AuthHandler
-	Devices  *handler.DeviceHandler
-	Verifier appauth.TokenVerifier
-	Limiter  middleware.Limiter
+	Config    *config.Config
+	Logger    *slog.Logger
+	Health    *handler.HealthHandler
+	Auth      *handler.AuthHandler
+	Devices   *handler.DeviceHandler
+	Telemetry *handler.TelemetryHandler
+	WS        *ws.Handler
+	Verifier  appauth.TokenVerifier
+	Limiter   middleware.Limiter
 }
 
 // New builds the fully-wired Gin engine.
@@ -72,7 +75,13 @@ func New(d Deps) *gin.Engine {
 			devices.GET("/:id", d.Devices.Get)
 			devices.PATCH("/:id", manageRoles, d.Devices.Update)
 			devices.DELETE("/:id", adminOnly, d.Devices.Delete)
+			devices.GET("/:id/telemetry", d.Telemetry.History)
+			devices.GET("/:id/telemetry/latest", d.Telemetry.Latest)
 		}
+
+		// WebSocket endpoint authenticates via ?token= inside the handler
+		// (browsers cannot set headers on the WS handshake).
+		v1.GET("/ws", d.WS.Serve)
 	}
 
 	return r

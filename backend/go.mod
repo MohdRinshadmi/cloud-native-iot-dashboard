@@ -3,10 +3,12 @@ module github.com/ioss/iot-dashboard/backend
 go 1.26
 
 require (
+	github.com/eclipse/paho.mqtt.golang v1.5.1
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/redis/go-redis/v9 v9.20.0
 	golang.org/x/crypto v0.53.0
 	gorm.io/driver/postgres v1.6.0

@@ -30,6 +30,15 @@ type Config struct {
 	Redis    RedisConfig
 	MQTT     MQTTConfig
 	JWT      JWTConfig
+	Ingest   IngestConfig
+}
+
+// IngestConfig tunes the telemetry pipeline.
+type IngestConfig struct {
+	Workers           int
+	QueueSize         int
+	HeartbeatInterval time.Duration
+	OfflineAfter      time.Duration
 }
 
 // HTTPConfig configures the Gin HTTP server.
@@ -131,6 +140,12 @@ func Load() (*Config, error) {
 			RefreshSecret: getEnv("JWT_REFRESH_SECRET", "dev_refresh_secret_change_me"),
 			AccessTTL:     getEnvDuration("JWT_ACCESS_TTL", 15*time.Minute),
 			RefreshTTL:    getEnvDuration("JWT_REFRESH_TTL", 168*time.Hour),
+		},
+		Ingest: IngestConfig{
+			Workers:           getEnvInt("INGEST_WORKERS", 4),
+			QueueSize:         getEnvInt("INGEST_QUEUE_SIZE", 1024),
+			HeartbeatInterval: getEnvDuration("INGEST_HEARTBEAT_INTERVAL", 30*time.Second),
+			OfflineAfter:      getEnvDuration("INGEST_OFFLINE_AFTER", 90*time.Second),
 		},
 	}
 

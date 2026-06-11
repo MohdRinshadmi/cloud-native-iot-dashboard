@@ -1,6 +1,9 @@
 package device
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Repository is the persistence PORT for the Device aggregate. The domain
 // declares the interface it needs; infrastructure (Phase 3, GORM/Postgres)
@@ -24,6 +27,15 @@ type Filter struct {
 	// Status restricts to a single connectivity state.
 	Status Status
 	Page   Page
+}
+
+// StatusChange reports a connectivity transition produced by the offline
+// sweep — enough information to broadcast the event tenant-scoped.
+type StatusChange struct {
+	DeviceID   string
+	TenantID   string
+	Status     Status
+	LastSeenAt *time.Time
 }
 
 // Page is a simple, validated pagination request.

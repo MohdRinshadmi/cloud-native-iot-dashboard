@@ -6,6 +6,7 @@ import { ComingSoon, PageSkeleton } from '@/shared/components/layout/route-state
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Separator } from '@/shared/components/ui/separator';
 import { DeviceStatusPill } from './components/device-status-pill';
+import { LiveTelemetryPanel } from './components/live-telemetry-panel';
 
 /** Single-device drill-down backed by GET /api/v1/devices/:id. */
 export function DeviceDetailPage() {
@@ -64,10 +65,14 @@ export function DeviceDetailPage() {
       </div>
 
       <div className="mt-6">
+        <LiveTelemetryPanel deviceId={device.id} />
+      </div>
+
+      <div className="mt-6">
         <ComingSoon
-          title="Live telemetry"
-          description="Streaming charts, health gauges and the remote command console attach here when the MQTT → WebSocket pipeline lands."
-          phase="Phases 5–6"
+          title="Historical charts & remote commands"
+          description="Time-series charts over the telemetry history API, plus the command console with OTA simulation."
+          phase="Phases 6–7"
         />
       </div>
     </>

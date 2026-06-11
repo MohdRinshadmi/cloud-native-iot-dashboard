@@ -1,6 +1,7 @@
 import { createRoute, Outlet, redirect } from '@tanstack/react-router';
 import { rootRoute } from './__root';
 import { AppShell } from '@/shared/components/layout/app-shell';
+import { RealtimeProvider } from '@/providers/realtime-provider';
 import { useAuthStore } from '@/stores/auth.store';
 
 /**
@@ -20,8 +21,10 @@ export const appLayoutRoute = createRoute({
     }
   },
   component: () => (
-    <AppShell>
-      <Outlet />
-    </AppShell>
+    <RealtimeProvider>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    </RealtimeProvider>
   ),
 });

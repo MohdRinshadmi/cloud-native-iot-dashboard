@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -58,6 +59,48 @@ func (r *DeviceRepository) Delete(ctx context.Context, tenantID, id string) erro
 		return apperror.NotFound("device not found")
 	}
 	return nil
+}
+
+// FindByID is the tenant-UNSCOPED lookup used exclusively by the ingest
+// pipeline, where identity comes from the broker connection rather than a
+// user session. Never expose this through a user-facing handler.
+func (r *DeviceRepository) FindByID(ctx context.Context, id string) (*device.Device, error) {
+	var m deviceModel
+	err := dbFrom(ctx, r.db).Where("id = ?", id).First(&m).Error
+	if err != nil {
+		return nil, translateError(err, "device not found")
+	}
+	return m.toDomain(), nil
+}
+
+// MarkOfflineBefore flips online/degraded devices whose heartbeat is older
+// than cutoff to offline, returning each transition for broadcast. One UPDATE
+// with RETURNING — the sweep stays O(1) round-trips regardless of fleet size.
+func (r *DeviceRepository) MarkOfflineBefore(ctx context.Context, cutoff time.Time) ([]device.StatusChange, error) {
+	type row struct {
+		ID         string
+		TenantID   string
+		LastSeenAt *time.Time
+	}
+	var rows []row
+	err := dbFrom(ctx, r.db).Raw(`
+		UPDATE devices
+		   SET status = 'offline', updated_at = now()
+		 WHERE status IN ('online', 'degraded')
+		   AND (last_seen_at IS NULL OR last_seen_at < ?)
+		RETURNING id, tenant_id, last_seen_at`, cutoff).
+		Scan(&rows).Error
+	if err != nil {
+		return nil, translateError(err, "device not found")
+	}
+	out := make([]device.StatusChange, len(rows))
+	for i, rw := range rows {
+		out[i] = device.StatusChange{
+			DeviceID: rw.ID, TenantID: rw.TenantID,
+			Status: device.StatusOffline, LastSeenAt: rw.LastSeenAt,
+		}
+	}
+	return out, nil
 }
 
 func (r *DeviceRepository) List(ctx context.Context, tenantID string, f device.Filter) ([]*device.Device, int64, error) {

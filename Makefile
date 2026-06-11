@@ -71,6 +71,10 @@ be-tidy: ## Tidy go modules
 be-lint: ## Vet + format check
 	cd $(BACKEND_DIR) && go vet ./... && gofmt -l .
 
+.PHONY: sim
+sim: ## Run the IoT device simulator (publishes MQTT telemetry)
+	cd $(BACKEND_DIR) && go run ./cmd/simulator -interval 2s
+
 ## ----------------------------------------------------------------------------
 ## Frontend
 ## ----------------------------------------------------------------------------
