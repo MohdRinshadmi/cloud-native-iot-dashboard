@@ -113,6 +113,7 @@ services:
     env_file: .env
     environment:
       POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432 # in-network port; host mapping may differ (see .env)
       REDIS_HOST: redis
       MQTT_HOST: mosquitto
     ports:

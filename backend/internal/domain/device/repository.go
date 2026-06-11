@@ -14,7 +14,16 @@ type Repository interface {
 	GetByID(ctx context.Context, tenantID, id string) (*Device, error)
 	Update(ctx context.Context, d *Device) error
 	Delete(ctx context.Context, tenantID, id string) error
-	List(ctx context.Context, tenantID string, page Page) ([]*Device, int64, error)
+	List(ctx context.Context, tenantID string, f Filter) ([]*Device, int64, error)
+}
+
+// Filter narrows a device listing. Zero values mean "no constraint".
+type Filter struct {
+	// Q matches name or model (case-insensitive substring).
+	Q string
+	// Status restricts to a single connectivity state.
+	Status Status
+	Page   Page
 }
 
 // Page is a simple, validated pagination request.

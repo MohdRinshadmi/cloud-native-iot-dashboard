@@ -68,6 +68,24 @@ func NewDevice(id, tenantID, name, model string, now time.Time) (*Device, error)
 	}, nil
 }
 
+// Rename updates the device's descriptive fields, enforcing invariants.
+// Empty-string arguments mean "leave unchanged" for model/firmware; the name
+// may never become empty.
+func (d *Device) Rename(name, model, firmware string, now time.Time) error {
+	if name == "" {
+		return apperror.InvalidInput("device name cannot be empty")
+	}
+	d.Name = name
+	if model != "" {
+		d.Model = model
+	}
+	if firmware != "" {
+		d.Firmware = firmware
+	}
+	d.UpdatedAt = now
+	return nil
+}
+
 // MarkSeen records a heartbeat, transitioning the device online.
 func (d *Device) MarkSeen(at time.Time) {
 	d.LastSeenAt = &at
