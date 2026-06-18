@@ -45,6 +45,16 @@ func (f *fakeRepo) Delete(_ context.Context, tenantID, id string) error {
 	return nil
 }
 
+func (f *fakeRepo) CountByStatus(_ context.Context, tenantID string) (map[device.Status]int64, error) {
+	out := map[device.Status]int64{}
+	for _, d := range f.items {
+		if d.TenantID == tenantID {
+			out[d.Status]++
+		}
+	}
+	return out, nil
+}
+
 func (f *fakeRepo) List(_ context.Context, tenantID string, fl device.Filter) ([]*device.Device, int64, error) {
 	var all []*device.Device
 	for _, d := range f.items {
@@ -131,5 +141,34 @@ func TestService_List_RejectsUnknownStatus(t *testing.T) {
 	_, _, err := svc.List(context.Background(), devices.ListInput{TenantID: "t1", Status: "warp-speed"})
 	if err == nil {
 		t.Fatal("expected invalid status error")
+	}
+}
+
+func TestService_Summary_CountsAndZeroFills(t *testing.T) {
+	repo := newFakeRepo()
+	svc := devices.NewService(repo, fixedNow)
+	ctx := context.Background()
+
+	// Two devices: one stays provisioning, one goes online.
+	_, _ = svc.Create(ctx, devices.CreateInput{TenantID: "t1", Name: "a"})
+	d, _ := svc.Create(ctx, devices.CreateInput{TenantID: "t1", Name: "b"})
+	d.Status = device.StatusOnline
+	repo.items[d.ID] = d
+	// Other tenant device must not leak into the summary.
+	_, _ = svc.Create(ctx, devices.CreateInput{TenantID: "t2", Name: "c"})
+
+	sum, err := svc.Summary(ctx, "t1")
+	if err != nil {
+		t.Fatalf("summary: %v", err)
+	}
+	if sum.Total != 2 {
+		t.Errorf("total = %d, want 2 (tenant-scoped)", sum.Total)
+	}
+	if sum.Online != 1 {
+		t.Errorf("online = %d, want 1", sum.Online)
+	}
+	// Zero-fill: a status with no devices must still be present.
+	if _, ok := sum.ByStatus[device.StatusDecommissioned]; !ok {
+		t.Error("ByStatus must zero-fill every status key")
 	}
 }

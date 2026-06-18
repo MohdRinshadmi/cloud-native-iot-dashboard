@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Separator } from '@/shared/components/ui/separator';
 import { DeviceStatusPill } from './components/device-status-pill';
 import { LiveTelemetryPanel } from './components/live-telemetry-panel';
+import { TelemetryHistorySection } from './components/telemetry-history-section';
 
 /** Single-device drill-down backed by GET /api/v1/devices/:id. */
 export function DeviceDetailPage() {
@@ -69,10 +70,14 @@ export function DeviceDetailPage() {
       </div>
 
       <div className="mt-6">
+        <TelemetryHistorySection deviceId={device.id} />
+      </div>
+
+      <div className="mt-6">
         <ComingSoon
-          title="Historical charts & remote commands"
-          description="Time-series charts over the telemetry history API, plus the command console with OTA simulation."
-          phase="Phases 6–7"
+          title="Remote commands & OTA"
+          description="The command console (reboot, config push) and over-the-air firmware update simulation attach here."
+          phase="Phase 7"
         />
       </div>
     </>

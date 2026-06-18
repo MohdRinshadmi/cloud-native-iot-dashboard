@@ -116,3 +116,41 @@ func (s *Service) Update(ctx context.Context, tenantID, id string, in UpdateInpu
 func (s *Service) Delete(ctx context.Context, tenantID, id string) error {
 	return s.repo.Delete(ctx, tenantID, id)
 }
+
+// FleetSummary is the dashboard's headline aggregate for a tenant.
+type FleetSummary struct {
+	Total    int64
+	Online   int64
+	Offline  int64
+	Degraded int64
+	Other    int64 // provisioning + decommissioned
+	ByStatus map[device.Status]int64
+}
+
+// Summary computes the fleet status distribution in a single grouped query.
+func (s *Service) Summary(ctx context.Context, tenantID string) (*FleetSummary, error) {
+	counts, err := s.repo.CountByStatus(ctx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	// Ensure every status key is present (zero-filled) so the UI is stable.
+	byStatus := map[device.Status]int64{
+		device.StatusOnline:         counts[device.StatusOnline],
+		device.StatusOffline:        counts[device.StatusOffline],
+		device.StatusDegraded:       counts[device.StatusDegraded],
+		device.StatusProvisioning:   counts[device.StatusProvisioning],
+		device.StatusDecommissioned: counts[device.StatusDecommissioned],
+	}
+	var total int64
+	for _, c := range byStatus {
+		total += c
+	}
+	return &FleetSummary{
+		Total:    total,
+		Online:   byStatus[device.StatusOnline],
+		Offline:  byStatus[device.StatusOffline],
+		Degraded: byStatus[device.StatusDegraded],
+		Other:    byStatus[device.StatusProvisioning] + byStatus[device.StatusDecommissioned],
+		ByStatus: byStatus,
+	}, nil
+}

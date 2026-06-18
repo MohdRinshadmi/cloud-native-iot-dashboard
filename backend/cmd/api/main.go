@@ -135,6 +135,7 @@ func run() error {
 		Auth:      handler.NewAuthHandler(authSvc, cfg.IsProduction()),
 		Devices:   handler.NewDeviceHandler(deviceSvc),
 		Telemetry: handler.NewTelemetryHandler(deviceSvc, telemetryRepo, latestStore),
+		Fleet:     handler.NewFleetHandler(deviceSvc),
 		WS:        ws.NewHandler(hub, jwtManager, cfg.HTTP.AllowedOrigins, log),
 		Verifier:  jwtManager,
 		Limiter:   limiter,

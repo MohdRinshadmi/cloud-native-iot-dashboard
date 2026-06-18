@@ -14,6 +14,7 @@ import { useRealtimeEvent } from '@/providers/realtime-provider';
 import { api } from '@/services/api/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
+import { RadialGauge } from '@/shared/components/charts/radial-gauge';
 import type { TelemetryReading } from '@/types/api';
 
 interface MetricSpec {
@@ -65,7 +66,14 @@ export function LiveTelemetryPanel({ deviceId }: { deviceId: string }) {
         </div>
         {isStreaming && <Badge variant="success">Streaming</Badge>}
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
+        {reading && (
+          <div className="flex flex-wrap justify-center gap-6 sm:justify-start">
+            <RadialGauge value={reading.battery ?? 0} label="Battery" />
+            <RadialGauge value={reading.cpu ?? 0} label="CPU" />
+            <RadialGauge value={reading.memory ?? 0} label="Memory" />
+          </div>
+        )}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {METRICS.map((m) => {
             const value = reading?.[m.key];

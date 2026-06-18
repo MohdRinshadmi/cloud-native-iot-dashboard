@@ -150,7 +150,7 @@ make down        # stop everything, remove volumes
 - [x] **Phase 3 — Backend foundation**: GORM + Postgres, repositories, embedded migrations, device CRUD, Redis
 - [x] **Phase 4 — Authentication**: JWT + refresh rotation w/ reuse detection, RBAC, login UI, route guards
 - [x] **Phase 5 — Real-time**: MQTT consumer, worker-pool ingest pipeline, WS broadcaster, offline sweep, device simulator (`make sim`)
-- [ ] Phase 6 — Dashboard: KPI widgets, streaming charts (Recharts/D3)
+- [x] **Phase 6 — Dashboard**: fleet-summary aggregate endpoint, Recharts time-series/donut/bar, D3 sparklines + radial gauges, streaming device charts (range picker + live append), Analytics page, live throughput
 - [ ] Phase 7 — Device management: groups, firmware, OTA simulation, commands
 - [ ] Phase 8 — Maps: Leaflet + OpenStreetMap, clustering, geofencing
 - [ ] Phase 9 — AI layer: anomaly detection, health scoring, predictive maintenance

@@ -103,6 +103,28 @@ func (r *DeviceRepository) MarkOfflineBefore(ctx context.Context, cutoff time.Ti
 	return out, nil
 }
 
+// CountByStatus returns device counts grouped by status for one tenant.
+func (r *DeviceRepository) CountByStatus(ctx context.Context, tenantID string) (map[device.Status]int64, error) {
+	type row struct {
+		Status string
+		Count  int64
+	}
+	var rows []row
+	err := dbFrom(ctx, r.db).Model(&deviceModel{}).
+		Select("status, count(*) as count").
+		Where("tenant_id = ?", tenantID).
+		Group("status").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, translateError(err, "device not found")
+	}
+	out := make(map[device.Status]int64, len(rows))
+	for _, rw := range rows {
+		out[device.Status(rw.Status)] = rw.Count
+	}
+	return out, nil
+}
+
 func (r *DeviceRepository) List(ctx context.Context, tenantID string, f device.Filter) ([]*device.Device, int64, error) {
 	q := dbFrom(ctx, r.db).Model(&deviceModel{}).Where("tenant_id = ?", tenantID)
 

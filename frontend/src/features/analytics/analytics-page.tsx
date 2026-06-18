@@ -1,18 +1,25 @@
 import { PageHeader } from '@/shared/components/layout/page-header';
-import { ComingSoon } from '@/shared/components/layout/route-states';
+import { StatusBreakdownCard } from './components/status-breakdown-card';
+import { ModelDistributionCard } from './components/model-distribution-card';
+import { ThroughputCard } from './components/throughput-card';
 
+/** Fleet-level analytics: composition, status distribution and live throughput. */
 export function AnalyticsPage() {
   return (
     <>
       <PageHeader
         title="Analytics"
-        description="Historical trends, fleet distributions and operational metrics."
+        description="Fleet composition, status distribution and real-time ingest throughput."
       />
-      <ComingSoon
-        title="Analytics workbench"
-        description="Recharts + D3 visualizations over historical telemetry: trend lines, distributions, percentile bands and fleet comparisons."
-        phase="Phase 6"
-      />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <StatusBreakdownCard />
+        <ModelDistributionCard />
+      </div>
+
+      <div className="mt-6">
+        <ThroughputCard />
+      </div>
     </>
   );
 }

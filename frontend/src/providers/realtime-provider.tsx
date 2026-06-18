@@ -51,6 +51,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       if (now - lastInvalidate > 2000) {
         lastInvalidate = now;
         void queryClient.invalidateQueries({ queryKey: deviceKeys.all });
+        void queryClient.invalidateQueries({ queryKey: ['fleet', 'summary'] });
       }
     });
 

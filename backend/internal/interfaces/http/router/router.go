@@ -25,6 +25,7 @@ type Deps struct {
 	Auth      *handler.AuthHandler
 	Devices   *handler.DeviceHandler
 	Telemetry *handler.TelemetryHandler
+	Fleet     *handler.FleetHandler
 	WS        *ws.Handler
 	Verifier  appauth.TokenVerifier
 	Limiter   middleware.Limiter
@@ -77,6 +78,11 @@ func New(d Deps) *gin.Engine {
 			devices.DELETE("/:id", adminOnly, d.Devices.Delete)
 			devices.GET("/:id/telemetry", d.Telemetry.History)
 			devices.GET("/:id/telemetry/latest", d.Telemetry.Latest)
+		}
+
+		fleet := v1.Group("/fleet", authRequired)
+		{
+			fleet.GET("/summary", d.Fleet.Summary)
 		}
 
 		// WebSocket endpoint authenticates via ?token= inside the handler

@@ -22,11 +22,24 @@ export default defineConfig({
         // Split heavy, rarely-changing vendor code into its own chunk so app
         // updates don't bust the framework cache.
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('@tanstack')) return 'tanstack';
-            if (id.includes('react') || id.includes('scheduler')) return 'react-vendor';
-            return 'vendor';
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('@tanstack')) return 'tanstack';
+          // Charting libs are heavy and only used on chart routes — isolate
+          // them so the base bundle stays lean and they cache independently.
+          if (
+            id.includes('/recharts/') ||
+            id.includes('/d3-') ||
+            id.includes('/victory-vendor/') ||
+            id.includes('/react-smooth/')
+          ) {
+            return 'charts';
           }
+          // Match ONLY the React core packages (not react-is/react-smooth/etc,
+          // which would create circular chunk references).
+          if (/\/node_modules\/(react|react-dom|scheduler)\//.test(id)) {
+            return 'react-vendor';
+          }
+          return 'vendor';
         },
       },
     },

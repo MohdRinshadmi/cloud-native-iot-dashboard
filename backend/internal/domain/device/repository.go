@@ -18,6 +18,9 @@ type Repository interface {
 	Update(ctx context.Context, d *Device) error
 	Delete(ctx context.Context, tenantID, id string) error
 	List(ctx context.Context, tenantID string, f Filter) ([]*Device, int64, error)
+	// CountByStatus returns the device count per status for one tenant, in a
+	// single GROUP BY query (the fleet-summary aggregate).
+	CountByStatus(ctx context.Context, tenantID string) (map[Status]int64, error)
 }
 
 // Filter narrows a device listing. Zero values mean "no constraint".
