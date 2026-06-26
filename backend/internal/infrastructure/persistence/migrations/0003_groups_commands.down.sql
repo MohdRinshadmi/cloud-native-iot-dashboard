@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS commands;
+ALTER TABLE devices DROP COLUMN IF EXISTS target_firmware;
+ALTER TABLE devices DROP COLUMN IF EXISTS group_id;
+DROP TABLE IF EXISTS device_groups;

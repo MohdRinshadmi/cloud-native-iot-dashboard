@@ -15,6 +15,7 @@ type EventType string
 const (
 	EventTelemetry    EventType = "telemetry"
 	EventDeviceStatus EventType = "device_status"
+	EventCommand      EventType = "command"
 )
 
 // Event is the envelope broadcast to clients. TenantID routes the event and is

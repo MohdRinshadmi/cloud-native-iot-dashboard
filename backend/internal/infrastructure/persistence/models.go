@@ -61,31 +61,35 @@ func (m *userModel) toDomain() *user.User {
 }
 
 type deviceModel struct {
-	ID         string `gorm:"primaryKey"`
-	TenantID   string
-	Name       string
-	Model      string
-	Firmware   string
-	Status     string
-	LastSeenAt *time.Time
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID             string `gorm:"primaryKey"`
+	TenantID       string
+	GroupID        *string
+	Name           string
+	Model          string
+	Firmware       string
+	TargetFirmware string
+	Status         string
+	LastSeenAt     *time.Time
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 func (deviceModel) TableName() string { return "devices" }
 
 func deviceToModel(d *device.Device) *deviceModel {
 	return &deviceModel{
-		ID: d.ID, TenantID: d.TenantID, Name: d.Name, Model: d.Model,
-		Firmware: d.Firmware, Status: string(d.Status), LastSeenAt: d.LastSeenAt,
+		ID: d.ID, TenantID: d.TenantID, GroupID: d.GroupID, Name: d.Name, Model: d.Model,
+		Firmware: d.Firmware, TargetFirmware: d.TargetFirmware,
+		Status: string(d.Status), LastSeenAt: d.LastSeenAt,
 		CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt,
 	}
 }
 
 func (m *deviceModel) toDomain() *device.Device {
 	return &device.Device{
-		ID: m.ID, TenantID: m.TenantID, Name: m.Name, Model: m.Model,
-		Firmware: m.Firmware, Status: device.Status(m.Status), LastSeenAt: m.LastSeenAt,
+		ID: m.ID, TenantID: m.TenantID, GroupID: m.GroupID, Name: m.Name, Model: m.Model,
+		Firmware: m.Firmware, TargetFirmware: m.TargetFirmware,
+		Status: device.Status(m.Status), LastSeenAt: m.LastSeenAt,
 		CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt,
 	}
 }

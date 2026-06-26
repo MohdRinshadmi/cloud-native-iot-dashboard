@@ -29,7 +29,9 @@ type Filter struct {
 	Q string
 	// Status restricts to a single connectivity state.
 	Status Status
-	Page   Page
+	// GroupID restricts to one group when non-nil.
+	GroupID *string
+	Page    Page
 }
 
 // StatusChange reports a connectivity transition produced by the offline

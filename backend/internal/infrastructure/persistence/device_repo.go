@@ -36,9 +36,22 @@ func (r *DeviceRepository) GetByID(ctx context.Context, tenantID, id string) (*d
 }
 
 func (r *DeviceRepository) Update(ctx context.Context, d *device.Device) error {
+	// Map-based update so zero values persist (clearing target_firmware after
+	// an OTA, or un-grouping by setting group_id = NULL) — struct Updates would
+	// silently skip those.
 	res := dbFrom(ctx, r.db).
+		Model(&deviceModel{}).
 		Where("tenant_id = ? AND id = ?", d.TenantID, d.ID).
-		Updates(deviceToModel(d))
+		Updates(map[string]any{
+			"group_id":        d.GroupID,
+			"name":            d.Name,
+			"model":           d.Model,
+			"firmware":        d.Firmware,
+			"target_firmware": d.TargetFirmware,
+			"status":          string(d.Status),
+			"last_seen_at":    d.LastSeenAt,
+			"updated_at":      d.UpdatedAt,
+		})
 	if res.Error != nil {
 		return translateError(res.Error, "device not found")
 	}
@@ -134,6 +147,9 @@ func (r *DeviceRepository) List(ctx context.Context, tenantID string, f device.F
 	}
 	if f.Status != "" {
 		q = q.Where("status = ?", string(f.Status))
+	}
+	if f.GroupID != nil {
+		q = q.Where("group_id = ?", *f.GroupID)
 	}
 
 	var total int64

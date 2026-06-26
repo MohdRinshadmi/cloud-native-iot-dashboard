@@ -35,9 +35,11 @@ func (s Status) Valid() bool {
 type Device struct {
 	ID         string
 	TenantID   string
+	GroupID    *string // optional fleet/group membership
 	Name       string
 	Model      string
-	Firmware   string
+	Firmware   string  // currently-running version
+	TargetFirmware string // desired version (set on OTA, cleared once applied)
 	Status     Status
 	LastSeenAt *time.Time
 	CreatedAt  time.Time
@@ -84,6 +86,32 @@ func (d *Device) Rename(name, model, firmware string, now time.Time) error {
 	}
 	d.UpdatedAt = now
 	return nil
+}
+
+// AssignGroup moves the device into a group (or nil to ungroup).
+func (d *Device) AssignGroup(groupID *string, now time.Time) {
+	d.GroupID = groupID
+	d.UpdatedAt = now
+}
+
+// RequestFirmware records the desired OTA target version.
+func (d *Device) RequestFirmware(version string, now time.Time) error {
+	if version == "" {
+		return apperror.InvalidInput("target firmware version is required")
+	}
+	d.TargetFirmware = version
+	d.UpdatedAt = now
+	return nil
+}
+
+// ApplyFirmware marks an OTA complete: the running version becomes the target
+// and the pending target clears. Called when the device ACKs the update.
+func (d *Device) ApplyFirmware(version string, now time.Time) {
+	d.Firmware = version
+	if d.TargetFirmware == version {
+		d.TargetFirmware = ""
+	}
+	d.UpdatedAt = now
 }
 
 // MarkSeen records a heartbeat, transitioning the device online.
