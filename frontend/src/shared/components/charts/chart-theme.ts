@@ -4,16 +4,16 @@
  * one place to keep charts on-brand with the dark enterprise theme.
  */
 export const CHART = {
-  primary: 'hsl(199 89% 56%)',
-  success: 'hsl(142 71% 45%)',
-  warning: 'hsl(38 92% 50%)',
-  destructive: 'hsl(0 72% 51%)',
-  violet: 'hsl(262 83% 65%)',
-  muted: 'hsl(215 20% 55%)',
-  grid: 'hsl(217 33% 20%)',
-  axis: 'hsl(215 20% 50%)',
-  surface: 'hsl(222 44% 10%)',
-  border: 'hsl(217 33% 22%)',
+  primary: 'hsl(190 96% 55%)',
+  success: 'hsl(152 58% 46%)',
+  warning: 'hsl(35 92% 55%)',
+  destructive: 'hsl(358 70% 56%)',
+  violet: 'hsl(258 84% 70%)',
+  muted: 'hsl(216 15% 58%)',
+  grid: 'hsl(218 16% 20%)',
+  axis: 'hsl(216 14% 52%)',
+  surface: 'hsl(220 20% 9%)',
+  border: 'hsl(218 16% 22%)',
 } as const;
 
 /** Per-metric color + label + unit, shared across every telemetry chart. */
@@ -22,7 +22,7 @@ export const METRIC_THEME = {
   battery: { color: CHART.success, label: 'Battery', unit: '%' },
   voltage: { color: CHART.violet, label: 'Voltage', unit: 'V' },
   cpu: { color: CHART.primary, label: 'CPU', unit: '%' },
-  memory: { color: 'hsl(190 80% 50%)', label: 'Memory', unit: '%' },
+  memory: { color: 'hsl(168 68% 48%)', label: 'Memory', unit: '%' },
   signal: { color: CHART.muted, label: 'Signal', unit: 'dBm' },
 } as const;
 

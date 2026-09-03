@@ -17,19 +17,19 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'sticky top-0 z-30 flex h-screen shrink-0 flex-col border-r border-border bg-card/40 backdrop-blur transition-[width] duration-200',
+        'sticky top-0 z-30 flex h-screen shrink-0 flex-col border-r border-border bg-card/60 backdrop-blur-xl transition-[width] duration-200',
         collapsed ? 'w-[4.25rem]' : 'w-60',
       )}
     >
       {/* Brand */}
       <div className={cn('flex h-14 items-center gap-2.5 border-b border-border px-4', collapsed && 'justify-center px-0')}>
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary shadow-glow ring-1 ring-primary/30">
           <Radar className="h-5 w-5" />
         </span>
         {!collapsed && (
           <div className="leading-tight">
             <p className="text-sm font-semibold tracking-tight">Fleet Command</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">IoT Analytics</p>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">IoT Analytics</p>
           </div>
         )}
       </div>
@@ -50,9 +50,10 @@ export function Sidebar() {
                     to={item.to}
                     activeOptions={{ exact: item.to === '/' }}
                     className={cn(
-                      'group flex items-center gap-3 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors',
-                      'hover:bg-accent hover:text-accent-foreground',
-                      '[&.active]:bg-primary/10 [&.active]:text-primary [&.active]:font-medium',
+                      'group relative flex items-center gap-3 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors',
+                      'before:absolute before:left-0 before:top-1/2 before:h-4 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-primary before:opacity-0 before:transition-opacity',
+                      'hover:bg-accent hover:text-foreground',
+                      '[&.active]:bg-primary/10 [&.active]:text-primary [&.active]:font-medium [&.active]:before:opacity-100',
                       collapsed && 'justify-center px-0',
                     )}
                   >

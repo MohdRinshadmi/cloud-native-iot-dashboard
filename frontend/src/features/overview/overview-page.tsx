@@ -53,24 +53,31 @@ export function OverviewPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((kpi) => (
-          <Card key={kpi.label}>
+          <Card
+            key={kpi.label}
+            className="group relative overflow-hidden hover:border-primary/30"
+          >
+            {/* Signal glow that ignites on hover — the "instrument comes alive" cue. */}
+            <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
             <CardContent className="flex items-start justify-between p-5">
               <div className="min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                   {kpi.label}
                 </p>
-                <p className={`mt-2 font-mono text-3xl font-semibold ${kpi.accent ?? ''}`}>
+                <p
+                  className={`mt-2.5 font-mono text-[2rem] font-semibold leading-none tracking-tight tabular-nums ${kpi.accent ?? ''}`}
+                >
                   {kpi.value}
                 </p>
                 {kpi.spark && kpi.spark.length > 1 ? (
-                  <div className="mt-2">
+                  <div className="mt-3">
                     <Sparkline values={kpi.spark} color={CHART.primary} width={120} height={28} />
                   </div>
                 ) : (
-                  <p className="mt-1 text-xs text-muted-foreground">{kpi.hint}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{kpi.hint}</p>
                 )}
               </div>
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary ring-1 ring-inset ring-primary/20 transition-shadow group-hover:shadow-glow">
                 <kpi.icon className="h-4 w-4" />
               </span>
             </CardContent>

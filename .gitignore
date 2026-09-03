@@ -35,5 +35,10 @@ vendor/
 *.log
 .turbo/
 
+# ---- Claude Code ----
+# Bundled personal skills — not project-specific, keep local only
+.claude/skills/
+.claude/.DS_Store
+
 # ---- Archived prior build (kept locally, never committed) ----
 _legacy/

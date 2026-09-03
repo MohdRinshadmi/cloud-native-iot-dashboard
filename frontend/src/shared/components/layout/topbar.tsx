@@ -29,14 +29,14 @@ export function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/80 px-6 backdrop-blur">
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/70 px-6 backdrop-blur-xl">
       <Breadcrumbs />
 
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => setPaletteOpen(true)}
-          className="hidden items-center gap-3 rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent md:flex"
+          className="hidden items-center gap-3 rounded-md border border-border bg-elevated/40 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-border/70 hover:bg-accent hover:text-foreground md:flex"
         >
           <Search className="h-3.5 w-3.5" />
           <span>Search…</span>
@@ -51,7 +51,7 @@ export function Topbar() {
             <button
               type="button"
               aria-label="User menu"
-              className="grid h-8 w-8 place-items-center rounded-full border border-border bg-primary/15 text-sm font-semibold text-primary transition-colors hover:bg-primary/25"
+              className="grid h-8 w-8 place-items-center rounded-full bg-primary/15 text-sm font-semibold text-primary ring-1 ring-primary/30 transition-all hover:bg-primary/25 hover:ring-primary/50"
             >
               {user?.name.charAt(0).toUpperCase() ?? '?'}
             </button>

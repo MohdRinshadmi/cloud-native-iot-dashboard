@@ -21,7 +21,7 @@ export function Sparkline({
   values,
   width = 120,
   height = 36,
-  color = 'hsl(199 89% 56%)',
+  color = 'hsl(190 96% 55%)',
   fill = true,
 }: SparklineProps) {
   const { linePath, areaPath } = useMemo(() => {

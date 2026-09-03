@@ -28,7 +28,7 @@ export function ConnectionIndicator() {
         <button
           type="button"
           aria-label={`Connection: ${labels[state].text}`}
-          className="flex items-center gap-2 rounded-md border border-border px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
+          className="flex items-center gap-2 rounded-md border border-border bg-elevated/40 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-border/70 hover:bg-accent hover:text-foreground"
         >
           <span
             className={cn(

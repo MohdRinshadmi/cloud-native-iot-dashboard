@@ -22,7 +22,7 @@ export function SystemStatusCard() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="w-full max-w-md rounded-xl border border-border bg-card/70 p-6 shadow-2xl backdrop-blur"
+      className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-panel"
     >
       <div className="flex items-center gap-3">
         <span
